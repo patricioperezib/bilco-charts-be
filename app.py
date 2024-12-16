@@ -110,6 +110,34 @@ def process_summary_comparison():
         write_consolidated_data(consolidated_sheet, 0, consolidated_data, title_style=title_format)
         adjust_column_widths(consolidated_sheet, consolidated_data)
 
+        # Add charts for Scope 1, Scope 2, Scope 3
+        def add_chart(sheet, scope_name, start_row, scope_rows, chart_position):
+            chart = workbook.add_chart({'type': 'column'})
+            for idx, row in enumerate(scope_rows):
+                col_start = 1  # Assuming years start from column 1
+                col_end = len(consolidated_data[0]) - 1
+                chart.add_series({
+                    'name':       f"={sheet.get_name()}!$A${row + 1}",
+                    'categories': f"={sheet.get_name()}!$B$1:$H$1",
+                    'values':     f"={sheet.get_name()}!$B${row + 1}:$H${row + 1}",
+                    'fill': {'color': f"#{hex(0x3366CC + idx * 10000)[2:]}"},
+                })
+        chart.set_title({'name': scope_name})
+        chart.set_x_axis({'name': 'Years'})
+        chart.set_y_axis({'name': 't CO2e'})
+        chart.set_legend({'position': 'bottom'})
+        consolidated_sheet.insert_chart(chart_position, chart)
+
+        # Rows for Scope 1, Scope 2, Scope 3
+        scope_1_rows = [1, 2, 3, 4]
+        scope_2_rows = [9, 10]
+        scope_3_rows = [12, 13, 15, 17, 21, 24, 26]
+
+        add_chart(consolidated_sheet, "Scope 1 - Direct Emissions", 1, scope_1_rows, 'J2')
+        add_chart(consolidated_sheet, "Scope 2 - Indirect Emissions", 9, scope_2_rows, 'J17')
+        add_chart(consolidated_sheet, "Scope 3 - Other Indirect Emissions", 12, scope_3_rows, 'J32')
+
+
         # Close the workbook
         workbook.close()
         output.seek(0)
